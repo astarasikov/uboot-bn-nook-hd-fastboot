@@ -35,6 +35,9 @@
 #define CONFIG_OVATION		1    /* working with B&N Ovation */
 #define CONFIG_FASTBOOT		1    /* Using fastboot interface */
 
+#define CONFIG_OMAP4_SDC 1 /* enable all clocks */
+#define CONFIG_4430VIRTIO 1 /* init prcm et al. in sdram */
+
 /*
   * Product type defined by hw0~hw2
   * - 0x02      Acclaim
@@ -354,5 +357,8 @@ extern unsigned int boot_flash_type;
 #define NAND_DISABLE_CE(nand)
 #define NAND_ENABLE_CE(nand)
 #define NAND_WAIT_READY(nand)	udelay(10)
+
+#define CONFIG_SYS_PBSIZE CFG_PBSIZE
+#define CONFIG_SYS_CBSIZE CFG_CBSIZE
 
 #endif                           /* __CONFIG_H */

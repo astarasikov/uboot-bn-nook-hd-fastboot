@@ -31,8 +31,6 @@
 #include <mmc.h>
 #include <fastboot.h>
 #include <asm/arch/sys_info.h>
-#include <omap4_dsi.h>
-#include <omap4430sdp_lcd.h>
 #include <bn_boot.h>
 
 static const struct efi_partition_info partitions[] = {
@@ -62,103 +60,9 @@ void board_mmc_init(void)
 {
 }
 
-static struct omap_dsi_panel panel = {
-	.xres 		= 1920,
-	.yres 		= 1280,
-
-	.dsi_data = {
-		.pxl_fmt	= OMAP_PXL_FMT_RGB666_PACKED,
-		.hsa		= 0,
-		.hbp		= 0,
-		.hfp		= 24,
-
-		.vsa		= 1,
-		.vfp 		= 10,
-		.vbp		= 9,
-
-		.window_sync	= 4,
-
-		.regm 		= 348,
-		.regn 		= 20,
-		.regm_dsi 	= 8,
-		.regm_dispc	= 9,
-		.lp_div		= 16,
-		.tl		= 1107,
-		.vact		= 1280,
-		.line_bufs	= 0,
-		.bus_width	= 1,
-
-		.hsa_hs_int	= 0,
-		.hfp_hs_int	= 0,
-		.hbp_hs_int	= 0,
-
-		.hsa_lp_int	= 130,
-		.hfp_lp_int	= 223,
-		.hbp_lp_int	= 59,
-
-		.bl_lp_int	= 0,
-		.bl_hs_int	= 1038,
-
-		.enter_lat	= 23,
-		.exit_lat	= 21,
-
-		.ths_prepare 	= 26,
-		.ths_zero 	= 35,
-		.ths_trail	= 26,
-		.ths_exit	= 49,
-		.tlpx		= 17,
-		.tclk_trail	= 23,
-		.tclk_zero	= 89,
-		.tclk_prepare	= 22,
-	},
-
-	.dispc_data = {
-		.hsw 		= 5,
-		.hfp		= 4,
-		.hbp		= 39,
-
-		.vsw		= 1,
-		.vfp		= 9,
-		.vbp		= 10,
-
-		.pcd		= 1,
-		.lcd		= 1,
-		.acbi		= 0,
-		.acb		= 0,
-
-		.row_inc	= 112,
-	},
-};
-
-int panel_has_enabled = 0;
 int board_late_init(void)
 {
-	int bootmode = set_boot_mode();
-	enum omap_dispc_format fmt = OMAP_RGB565_FMT;
-
-    panel_enable(0);
-	display_init(&panel, (void *)ONSCREEN_BUFFER, fmt);
-    panel_has_enabled = 1;
-    panel_enable(1);
-    backlight_enable(1);
-    backlight_set_brightness(0x80);
-
+	set_boot_mode();
 	return SD_UIMAGE;
 }
 
-void show_image(ppz_images image_name)
-{
-}
-
-void turn_panel_off()
-{
-}
-
-void turn_panel_on()
-{
-}
-
-int panel_is_enabled()
-{
-	return panel_has_enabled;
-}
