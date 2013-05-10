@@ -21,14 +21,18 @@
 #ifndef __OMAP4430SDP_LCD_H__
 #define __OMAP4430SDP_LCD_H__
 
-#define LCD_WIDTH				1024
-#define LCD_HEIGHT				600
-#define LCD_HSW					10
-#define LCD_HFP					160
-#define LCD_HBP					160
-#define LCD_VSW					2
-#define LCD_VFP					10
-#define LCD_VBP					23
+#ifndef ONSCREEN_BUFFER
+	#define ONSCREEN_BUFFER				0xb2200000
+#endif
+
+#define LCD_WIDTH				1920
+#define LCD_HEIGHT				1280
+#define LCD_HSW					5
+#define LCD_HFP					4
+#define LCD_HBP					39
+#define LCD_VSW					1
+#define LCD_VFP					9
+#define LCD_VBP					10
 
 #define DMTIMER_RELOAD_VAL			0xFFFFFF00
 
@@ -71,8 +75,6 @@
 #define DMTIMER_TCLR_CAPT_MODE_SECOND		(1 << 13)
 #define DMTIMER_TCLR_GPO_CFG_0			(0 << 14)
 #define DMTIMER_TCLR_GPO_CFG_1			(1 << 14)
-
-#define ONSCREEN_BUFFER				0x82000000
 
 #define LCD_LCDPWR_ENA_PIO			36
 #define LCD_BLPWR_ENA_PIO			38

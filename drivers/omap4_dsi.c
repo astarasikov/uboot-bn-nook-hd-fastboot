@@ -191,8 +191,6 @@ DUMP_REG(CONTROL_DSIPHY);
 }
 #endif
 
-extern struct img_info bootimg_info;
-
 static inline int wait_for_bit_change(u32 reg, int bitnum, int value)
 {
 	int t = 100000;
@@ -853,14 +851,15 @@ void dispc_config(struct omap_dsi_panel *panel, void *framebuffer, enum omap_dis
 	__raw_writel(r, DISPC_GFX_BUF_THRESHOLD);
 	__raw_writel(0x8ff, DISPC_GFX_PRELOAD);
 
-	r = FLD_VAL( ((panel->xres-bootimg_info.width)/2), 10, 0) |
-	    FLD_VAL( ((panel->yres-bootimg_info.height)/2), 26, 16);
+	r = FLD_VAL(0, 10, 0) |
+	    FLD_VAL(0, 26, 16);
 	__raw_writel(r , DISPC_GFX_POSITION);
 
-	r = FLD_VAL(  bootimg_info.width - 1 , 10, 0) |
-		FLD_VAL( bootimg_info.height - 1 , 26, 16);
+	r = FLD_VAL(panel->xres - 1 , 10, 0) |
+		FLD_VAL(panel->yres - 1 , 26, 16);
 	__raw_writel(r, DISPC_GFX_SIZE);
-	__raw_writel(bootimg_info.bg_color, DISPC_DEFAULT_COLOR0);
+
+	__raw_writel(0, DISPC_DEFAULT_COLOR0);
 }
 
 void dispc_go(void)
