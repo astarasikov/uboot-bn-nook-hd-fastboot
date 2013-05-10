@@ -12,8 +12,8 @@
 # (mem base + reserved)
 
 # For use with external or internal boots.
-TEXT_BASE = 0x80e80000
-
+TEXT_BASE = 0x83000000
+# TEXT_BASE = 0x82000000
 
 # Handy to get symbols to debug ROM version.
 #TEXT_BASE = 0x0

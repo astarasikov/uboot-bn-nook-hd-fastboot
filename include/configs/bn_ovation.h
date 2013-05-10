@@ -48,7 +48,6 @@
 #define BOARD_LATE_INIT 1
 #define CONFIG_BOARD_REVISION	1
 #ifndef TI_EXTERNAL_BUILD
-#define CONFIG_BOOTCOUNT_LIMIT	1
 #define CONFIG_USBBOOT			/* Support boot from usb */
 #endif
 
@@ -88,6 +87,15 @@
 #define CFG_ENV_SIZE             SZ_128K    /* Total Size Environment Sector */
 #define CFG_MALLOC_LEN           (CFG_ENV_SIZE + SZ_128K)
 #define CFG_GBL_DATA_SIZE        128  /* bytes reserved for initial data */
+
+/* video */
+#define CONFIG_VIDEO
+#define CONFIG_CFB_CONSOLE
+#define CONFIG_VGA_AS_SINGLE_DEVICE
+#define CONFIG_CONSOLE_EXTRA_INFO
+#define CONFIG_STD_DEVICES_SETTINGS "stdin=vga,serial\0" \
+	"stdout=vga,serial\0" \
+	"stderr=vga,serial\0"
 
 /*
  * Hardware drivers
@@ -169,8 +177,8 @@
 #if defined(CONFIG_4430ZEBU) && !defined(CONFIG_4430ES2)
 /* Give the standard Kernel jump command as boot cmd and without any delay */
 #define CONFIG_BOOTDELAY         0
-#define CONFIG_EXTRA_ENV_SETTINGS \
-	"bootcmd=go 0x80008000\0"
+#define CONFIG_EXTRA_ENV_SETTINGS CONFIG_STD_DEVICES_SETTINGS \
+	"bootcmd=fastboot;\0"
 #else
 #define CONFIG_BOOTDELAY         0
 #define CONFIG_ZERO_BOOTDELAY_CHECK     /* check for keypress on bootdelay==0 */
@@ -195,7 +203,7 @@
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"sdbootargs=" stringify(BOARD_KERNEL_CMDLINE) " root=/dev/mmcblk1p2 rw" "\0"
 
-#define CONFIG_BOOTCOMMAND "booti mmc1"
+#define CONFIG_BOOTCOMMAND "bootcmd=fastboot;\0"
 #define CONFIG_OMAP4_ANDROID_CMD_LINE 1
 
 #endif

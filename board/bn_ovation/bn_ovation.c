@@ -105,16 +105,6 @@ int board_init(void)
 
 	gpmc_init();
 
-#if 0 /* No eMMC env partition for now */
-	/* Intializing env functional pointers with eMMC */
-	boot_env_get_char_spec = mmc_env_get_char_spec;
-	boot_env_init = mmc_env_init;
-	boot_saveenv = mmc_saveenv;
-	boot_env_relocate_spec = mmc_env_relocate_spec;
-	env_ptr = (env_t *) (CFG_FLASH_BASE + CFG_ENV_OFFSET);
-	env_name_spec = mmc_env_name_spec;
-#endif
-
 	/* board id for Linux */
 	gd->bd->bi_arch_number = MACH_TYPE_OMAP4_OVATION;
 	gd->bd->bi_boot_params = (0x80000000 + 0x100); /* boot param addr */
@@ -249,10 +239,6 @@ void panel_enable(u8 onoff)
 
 void backlight_enable(u8 onoff)
 {
-//	twl6030_ldo_set_voltage(TWL6032_LDO_3, 1800);
-//	twl6030_ldo_set_trans(TWL6032_LDO_3, 1);
-//	twl6030_ldo_enable(TWL6032_LDO_3, 1);
-
 	gpio_write(GPIO_LCD_BL_PWR_EN, onoff);
 
 	if (onoff) {
@@ -287,3 +273,26 @@ void backlight_set_brightness(u8 brightness)
 	lp855x_restore_i2c();
 }
 
+#ifdef CONFIG_VIDEO
+#include <video_fb.h>
+#include <omap4430sdp_lcd.h>
+
+GraphicDevice gdev;
+
+#define OVATION_FB ONSCREEN_BUFFER //0xb2200000
+#define OVATION_XRES 1920
+#define OVATION_YRES 1280
+
+void *video_hw_init(void) {
+	memset((void*)OVATION_FB, 0xff, OVATION_XRES * OVATION_YRES * 4);
+	gdev.frameAdrs = OVATION_FB;
+	gdev.winSizeX = OVATION_XRES;
+	gdev.winSizeY = OVATION_YRES;
+	gdev.gdfBytesPP = 4;
+	gdev.gdfIndex = GDF_24BIT_888RGB;
+	return &gdev;
+}
+
+void video_set_lut(unsigned idx,
+	unsigned char r, unsigned char g, unsigned char b) {}
+#endif
