@@ -112,8 +112,8 @@ int cleanup_before_linux(void)
 
 #ifdef CONFIG_LCD
 	{
-		lcd_disable(); /* proper disable of lcd & panel */
-		lcd_panel_disable();
+		//lcd_disable(); /* proper disable of lcd & panel */
+		//lcd_panel_disable();
 	}
 #endif
 
