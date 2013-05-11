@@ -1410,7 +1410,6 @@ do_bootm_lynxkdi (cmd_tbl_t *cmdtp, int flag,
 void
 bootimg_print_image_hdr (boot_img_hdr *hdr)
 {
-#ifdef DEBUG
 	int i;
 	printf ("   Image magic:   %s\n", hdr->magic);
 
@@ -1431,7 +1430,6 @@ bootimg_print_image_hdr (boot_img_hdr *hdr)
 
 	for (i=0;i<8;i++)
 		printf ("   id[%d]:   0x%x\n", i, hdr->id[i]);
-#endif
 }
 
 static unsigned char boothdr[512];
@@ -1449,8 +1447,6 @@ int do_booti (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	unsigned int val[4] = { 0 };
 	unsigned int reg = 0;
 
-	image_type image;
-
 	if (argc < 2)
 		return -1;
 
@@ -1462,8 +1458,9 @@ int do_booti (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		addr = simple_strtoul(argv[1], NULL, 16);
 	}
 
-	image.image = 3;
-	image.val = 99;
+	enum {
+		BOOT_ADDR_LIMIT = 0x83000000, //XXX: u-boot address
+	};
 
 	if (argc > 2)
 		ptn = argv[2];
@@ -1474,6 +1471,8 @@ int do_booti (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #if (CONFIG_MMC)
 		struct fastboot_ptentry *pte;
 		unsigned sector;
+
+		printf("%s: booting from mmc %d\n", __func__, mmcc);
 
 		pte = fastboot_flash_find_ptn(ptn);
 		if (!pte) {
@@ -1491,11 +1490,12 @@ int do_booti (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			goto fail;
 		}
 
-		if( ( (hdr->kernel_addr + hdr->kernel_size) > 0x80E80000 ) || ( hdr->ramdisk_addr < 0x80EC0000 ) ) {
+		if( (hdr->kernel_addr + hdr->kernel_size > BOOT_ADDR_LIMIT)
+			|| (hdr->ramdisk_addr + hdr->ramdisk_size > BOOT_ADDR_LIMIT) )
+		{
 			hdr->kernel_addr = 0;
 			hdr->ramdisk_addr = 0;
 		}
-
 
 		sector = pte->start + (hdr->page_size / 512);
 		if (mmc_read(mmcc, sector, (void*) hdr->kernel_addr,
@@ -1529,67 +1529,59 @@ int do_booti (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		kaddr = addr + hdr->page_size;
 		raddr = kaddr + ALIGN(hdr->kernel_size, hdr->page_size);
 
-		if( ( (hdr->kernel_addr + hdr->kernel_size) > 0x80E80000 ) ||
-			( ( hdr->ramdisk_addr < 0x80EC0000 ) && ( hdr->ramdisk_addr > 0x80E80000 ) ) ) {
+		if( (hdr->kernel_addr + hdr->kernel_size > BOOT_ADDR_LIMIT) ||
+			(hdr->ramdisk_addr + hdr->ramdisk_size > BOOT_ADDR_LIMIT))
+		{
 			hdr->kernel_addr = 0;
 			hdr->ramdisk_addr = 0;
+			printf("%s: kernel is too large\n", __func__);
+			return -1;
 		} else {
 			hdr->ramdisk_addr = raddr + KERNEL_OFFSET;
 		}
 
-		memmove((void*) (hdr->kernel_addr-KERNEL_OFFSET), kaddr, hdr->kernel_size);
-
+		void *kernel_dst = hdr->kernel_addr;
+		if (kernel_dst != kaddr) {
+			printf("%s: moving kernel %x -> %p,%x\n", __func__, kaddr, kernel_dst, hdr->kernel_size);
+			memmove(kernel_dst, kaddr, hdr->kernel_size);
+		}
+		else {
+			printf("%s: kernel at %p\n", __func__, kernel_dst);
+		}
 	}
 
 	if ( mmcc != -1 ) {
 		/* Incase or raw partiton, kernel start is at kernel_addr+KERNEL_OFFSET */
-		image.data = hdr->kernel_addr;
 		hdr->kernel_addr = (void*) ((u8*) ( hdr->kernel_addr ) + KERNEL_OFFSET );
 	} else {
 		/* Incase of fat partition, kernel start is at kernel_addr */
-		image.data = (hdr->kernel_addr-KERNEL_OFFSET);
 	}
-	SEC_ENTRY_Std_Ppa_Call ( PPA_SERV_HAL_BN_CHK , 1 , &image );
-	if ( image.val == 0 ) {
-		printf("kernel   @ %08x (%d)\n", hdr->kernel_addr, hdr->kernel_size);
-	} else {
-		printf(" kernel image has been corrupted, cannot boot\n");
-		do_reset (NULL, 0, 0, NULL);
-	}
-	image.image = 4;
-	image.val = 99;
-	image.data = ((u8*)( hdr->ramdisk_addr - KERNEL_OFFSET ) );
-	hdr->ramdisk_size -= KERNEL_OFFSET;
-	SEC_ENTRY_Std_Ppa_Call ( PPA_SERV_HAL_BN_CHK , 1 , &image );
-	if ( image.val == 0 ) {
-		printf("ramdisk  @ %08x (%d)\n", hdr->ramdisk_addr, hdr->ramdisk_size);
+	printf("kernel   @ %08x (%d)\n", hdr->kernel_addr, hdr->kernel_size);
+	//hdr->ramdisk_size -= KERNEL_OFFSET;
+	printf("ramdisk  @ %08x (%d)\n", hdr->ramdisk_addr, hdr->ramdisk_size);
 
 #if (CONFIG_OMAP4_ANDROID_CMD_LINE)
-		char uboot_version_string[128] = U_BOOT_VERSION;
-		char serial_str[128] = "";
-		unsigned serial_len = 0;
-		char boot_str[128];
-		unsigned boot_len;
-		char *die_id = getenv("dieid#");
-		if (die_id)
-			serial_len = sprintf(serial_str, " androidboot.serialno=%s", die_id);
+	char uboot_version_string[128] = U_BOOT_VERSION;
+	char serial_str[128] = "";
+	unsigned serial_len = 0;
+	char boot_str[128];
+	unsigned boot_len;
+	char *die_id = getenv("dieid#");
+	if (die_id)
+		serial_len = sprintf(serial_str, " androidboot.serialno=%s", die_id);
 
-		if(sizeof(hdr->cmdline) >= (serial_len + strlen(hdr->cmdline) + 1))
-			strcat(hdr->cmdline, serial_str);
+	if(sizeof(hdr->cmdline) >= (serial_len + strlen(hdr->cmdline) + 1))
+		strcat(hdr->cmdline, serial_str);
 
-		uboot_version_string[6] = '_';
-		boot_len = sprintf(boot_str, " androidboot.bootloader=%s",
-				uboot_version_string);
+	uboot_version_string[6] = '_';
+	boot_len = sprintf(boot_str, " androidboot.bootloader=%s",
+			uboot_version_string);
 
-		if(sizeof(hdr->cmdline) >= (boot_len + strlen(hdr->cmdline) + 1))
-			strcat(hdr->cmdline, boot_str);
+	if(sizeof(hdr->cmdline) >= (boot_len + strlen(hdr->cmdline) + 1))
+		strcat(hdr->cmdline, boot_str);
 #endif
 
-		do_booti_linux(hdr);
-	} else {
-		printf(" Ramdisk image has been corrupted , cannot boot\n");
-		do_reset (NULL, 0, 0, NULL);
-	}
+	do_booti_linux(hdr);
 
 	puts ("booti: Control returned to monitor - resetting...\n");
 	do_reset (cmdtp, flag, argc, argv);
