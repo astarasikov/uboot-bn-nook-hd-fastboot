@@ -35,8 +35,8 @@
 #define CONFIG_OVATION		1    /* working with B&N Ovation */
 #define CONFIG_FASTBOOT		1    /* Using fastboot interface */
 
-#define CONFIG_OMAP4_SDC 1 /* enable all clocks */
-#define CONFIG_4430VIRTIO 1 /* init prcm et al. in sdram */
+//#define CONFIG_OMAP4_SDC 1 /* enable all clocks */
+//#define CONFIG_4430VIRTIO 1 /* init prcm et al. in sdram */
 
 /*
   * Product type defined by hw0~hw2
@@ -180,8 +180,8 @@
 #if defined(CONFIG_4430ZEBU) && !defined(CONFIG_4430ES2)
 /* Give the standard Kernel jump command as boot cmd and without any delay */
 #define CONFIG_BOOTDELAY         0
-#define CONFIG_EXTRA_ENV_SETTINGS CONFIG_STD_DEVICES_SETTINGS \
-	"bootcmd=fastboot;\0"
+#define CONFIG_EXTRA_ENV_SETTINGS \
+	"sdbootargs=" stringify(BOARD_KERNEL_CMDLINE) "vmalloc=768M init=/init rootwait omap_wdt.timer_margin=20" "\0"
 #else
 #define CONFIG_BOOTDELAY         0
 #define CONFIG_ZERO_BOOTDELAY_CHECK     /* check for keypress on bootdelay==0 */
@@ -204,7 +204,7 @@
 // bootargs are set in device/ti/$PRODUCT/BoardConfig.mk
 #define CONFIG_BOOTARGS stringify(BOARD_KERNEL_CMDLINE)
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"sdbootargs=" stringify(BOARD_KERNEL_CMDLINE) " root=/dev/mmcblk1p2 rw" "\0"
+	"sdbootargs=" stringify(BOARD_KERNEL_CMDLINE) "vmalloc=768M init=/init rootwait omap_wdt.timer_margin=20" "\0"
 
 #define CONFIG_BOOTCOMMAND "bootcmd=fastboot;\0"
 #define CONFIG_OMAP4_ANDROID_CMD_LINE 1
