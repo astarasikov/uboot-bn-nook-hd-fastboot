@@ -225,7 +225,7 @@ void do_bootm_linux (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[],
 
 	SHOW_BOOT_PROGRESS (15);
 
-	debug ("## Transferring control to Linux (at address %08lx) ...\n",
+	printf ("## Transferring control to Linux (at address %08lx) ...\n",
 	       (ulong) theKernel);
 
 #if defined (CONFIG_SETUP_MEMORY_TAGS) || \
@@ -261,6 +261,11 @@ void do_bootm_linux (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[],
 #endif
 
 	/* we assume that the kernel is in place */
+	int i;
+	printf("\nKernel dump ");
+	for (i = 0; i < 16; i++) {
+		printf("%x ", ((unsigned*)theKernel)[i]);
+	}
 	printf ("\nStarting kernel ...\n\n");
 
 #ifdef CONFIG_USB_DEVICE
@@ -322,6 +327,11 @@ void do_booti_linux (boot_img_hdr *hdr)
 #endif
 
 	/* we assume that the kernel is in place */
+	int i;
+	printf("\nKernel dump ");
+	for (i = 0; i < 16; i++) {
+		printf("%x ", ((unsigned*)theKernel)[i]);
+	}
 	printf ("\nStarting kernel ...\n\n");
 
 #ifdef CONFIG_USB_DEVICE
