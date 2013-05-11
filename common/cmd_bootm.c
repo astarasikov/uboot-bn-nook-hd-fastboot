@@ -1459,7 +1459,7 @@ int do_booti (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	}
 
 	enum {
-		BOOT_ADDR_LIMIT = 0x83000000, //XXX: u-boot address
+		BOOT_ADDR_LIMIT = 0x88000000, //XXX: u-boot address
 	};
 
 	if (argc > 2)
